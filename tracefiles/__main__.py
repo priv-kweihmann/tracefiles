@@ -20,28 +20,28 @@ def create_argparser():
     return parser.parse_args()
 
 
-def get_debug_paths(args: argparse.Namespace) -> List[str]:
-    _cleaninpath = args.binary.lstrip('/')
+def get_debug_paths(binary: str, paths: List[str]) -> List[str]:
+    _cleaninpath = binary.lstrip('/')
     res = []
-    for path in args.debugpaths:
+    for path in paths:
         res.append(os.path.join(path, os.path.basename(_cleaninpath)))
-    res.append(args.binary)
+    res.append(binary)
     return res
 
 
-def find_and_translate(args: argparse.Namespace, sources: List[str]) -> Set[str]:
+def find_and_translate(sourcedir: str, sources: List[str]) -> Set[str]:
     result = set()
-    for root, _, files in os.walk(args.sourcedir):
+    for root, _, files in os.walk(sourcedir):
         for f in files:
             _fullpath = os.path.join(root, f)
-            result.update([os.path.relpath(_fullpath, args.sourcedir)
+            result.update([os.path.relpath(_fullpath, sourcedir)
                           for x in sources if _fullpath.endswith(x)])
     return result
 
 
-def get_sources(args: argparse.Namespace) -> Set[str]:
+def get_sources(sourcedir: str, binary: str, debugpaths: List[str]) -> Set[str]:
     res = set()
-    for inpath in get_debug_paths(args):
+    for inpath in get_debug_paths(binary, debugpaths):
         logging.info(f'Analyzing {inpath}')
         if os.path.exists(inpath):
             _src_files = []
@@ -66,13 +66,13 @@ def get_sources(args: argparse.Namespace) -> Set[str]:
             except:
                 logging.warning("Problems getting full DWARF info")
             _src_files = [x.replace('../', '') for x in _src_files if x]
-            res.update(find_and_translate(args, _src_files))
+            res.update(find_and_translate(sourcedir, _src_files))
     return res
 
 
 def main():
     args = create_argparser()
-    for file in sorted(get_sources(args)):
+    for file in sorted(get_sources(args.sourcedir, args.binary, args.debugpaths)):
         print(file)
 
 
