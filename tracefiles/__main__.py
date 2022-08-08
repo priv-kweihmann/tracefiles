@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 import argparse
-import glob
 import hashlib
 import logging
 import os

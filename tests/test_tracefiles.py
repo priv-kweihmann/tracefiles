@@ -1,8 +1,10 @@
-import logging
-from typing import List
-import pytest
-import os
+# SPDX-FileCopyrightText: 2022 Konrad Weihmann
+# SPDX-License-Identifier: BSD-2-Clause
 
+import os
+from typing import List
+
+import pytest
 from tracefiles.__main__ import get_sources
 
 
