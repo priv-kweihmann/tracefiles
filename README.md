@@ -1,17 +1,17 @@
 # tracefiles
 
-A utility to find used sources from a binary using DWARF info
+A utility to find used sources from a binary using DWARF info and more
 
 ## Usage
 
 ```text
-usage: tracefiles [-h] [--debugpaths DEBUGPATHS [DEBUGPATHS ...]] binary sourcedir
+usage: tracefiles [-h] [--debugpaths DEBUGPATHS [DEBUGPATHS ...]] sourcedir binaries [binaries ...]
 
 A utility to find used sources from a binary
 
 positional arguments:
-  binary                The binary to inspect
   sourcedir             Directory with the source code
+  binaries              The binaries to inspect
 
 options:
   -h, --help            show this help message and exit
