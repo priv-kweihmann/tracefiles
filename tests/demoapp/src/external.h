@@ -1,0 +1,1 @@
+extern void external_function(char* input);
