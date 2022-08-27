@@ -6,9 +6,24 @@ import hashlib
 import logging
 import os
 import subprocess
+import sys
 from typing import Dict
 from typing import List
 from typing import Set
+
+
+class PathWithScanningDepth:
+
+    def __init__(self, path: str) -> None:
+        self.depth: int = sys.maxsize
+        chunks = path.split(':')
+        self.path: str = chunks[0]
+        if len(chunks) > 1:
+            try:
+                self.depth = int(chunks[1])
+            except ValueError:
+                raise argparse.ArgumentError(
+                    f'Depth information must be a digit')
 
 
 def create_argparser():
@@ -16,7 +31,10 @@ def create_argparser():
                                      description='A utility to find used sources from a binary')
     parser.add_argument('--debugpaths', nargs='+', default=[], action='extend',
                         help='Potential paths where to look for debug info')
-    parser.add_argument('sourcedir', help='Directory with the source code')
+    parser.add_argument('--addsourcedirs', type=PathWithScanningDepth, nargs='+', default=[], action='extend',
+                        help='Additional paths to scan for sources')
+    parser.add_argument('sourcedir', type=PathWithScanningDepth,
+                        help='Directory with the source code')
     parser.add_argument('binaries', nargs='+', help='The binaries to inspect')
     return parser.parse_args()
 
@@ -67,19 +85,23 @@ def find_and_translate(hash_map: Dict, sources: List[str]) -> Set[str]:
     return result
 
 
-def hash_sources(sourcedir) -> Dict:
+def hash_sources(sourcedirs: List[PathWithScanningDepth]) -> Dict:
     res = {}
-    for root, _, files in os.walk(sourcedir):
-        for f in files:
-            filepath = os.path.join(root, f)
-            relpath = os.path.relpath(filepath, sourcedir)
-            res[relpath] = md5hash(filepath)
+    print(sourcedirs)
+    for sdir in sourcedirs:
+        for root, _, files in os.walk(sdir.path):
+            for f in files:
+                filepath = os.path.join(root, f)
+                relpath = os.path.relpath(filepath, sdir.path)
+                if relpath.count(os.path.sep) > sdir.depth:
+                    continue
+                res[relpath] = md5hash(filepath)
     return res
 
 
-def get_sources(sourcedir: str, binaries: List[str], debugpaths: List[str]) -> List[str]:
+def get_sources(sourcedirs: List[PathWithScanningDepth], binaries: List[str], debugpaths: List[str]) -> List[str]:
     res = set()
-    hash_map = hash_sources(sourcedir)
+    hash_map = hash_sources(sourcedirs)
     for binary in binaries:
         for inpath in get_debug_paths(binary, debugpaths):
             logging.info(f'Analyzing {inpath}')
@@ -118,7 +140,8 @@ def get_sources(sourcedir: str, binaries: List[str], debugpaths: List[str]) -> L
 
 def main():
     args = create_argparser()
-    for file in get_sources(args.sourcedir, args.binaries, args.debugpaths):
+    for file in get_sources([args.sourcedir] + args.addsourcedirs,
+                            args.binaries, args.debugpaths):
         print(file)
 
 

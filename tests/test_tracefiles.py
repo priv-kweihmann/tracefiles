@@ -5,7 +5,7 @@ import os
 from typing import List
 
 import pytest
-from tracefiles.__main__ import get_sources
+from tracefiles.__main__ import get_sources, PathWithScanningDepth
 
 
 def _get_all_files_from_dir(path: str) -> List[str]:
@@ -22,7 +22,7 @@ def _get_all_files_from_dir(path: str) -> List[str]:
 def test_tracefiles_no_debug():
     binaries, _ = _get_all_files_from_dir(pytest.demoapp_package)
     sourcedir = pytest.demoapp_src
-    assert get_sources(sourcedir, binaries, []) == [
+    assert get_sources([PathWithScanningDepth(sourcedir)], binaries, []) == [
         'sub/folder1/plain', 'template.in']
 
 
@@ -30,6 +30,6 @@ def test_tracefiles_debug():
     binaries, _ = _get_all_files_from_dir(pytest.demoapp_package)
     _, debugpaths = _get_all_files_from_dir(pytest.demoapp_debug)
     sourcedir = pytest.demoapp_src
-    assert get_sources(sourcedir, binaries, debugpaths) == ['external.c',
-                                                            'external.h',
-                                                            'main.c', 'sub/folder1/plain', 'template.in']
+    assert get_sources([PathWithScanningDepth(sourcedir)], binaries, debugpaths) == ['external.c',
+                                                                                     'external.h',
+                                                                                     'main.c', 'sub/folder1/plain', 'template.in']
