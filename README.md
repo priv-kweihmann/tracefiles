@@ -5,7 +5,7 @@ A utility to find used sources from a binary using DWARF info and more
 ## Usage
 
 ```text
-usage: tracefiles [-h] [--debugpaths DEBUGPATHS [DEBUGPATHS ...]] sourcedir binaries [binaries ...]
+usage: tracefiles [-h] [--debugpaths DEBUGPATHS [DEBUGPATHS ...]] [--addsourcedirs ADDSOURCEDIRS [ADDSOURCEDIRS ...]] sourcedir binaries [binaries ...]
 
 A utility to find used sources from a binary
 
@@ -17,6 +17,8 @@ options:
   -h, --help            show this help message and exit
   --debugpaths DEBUGPATHS [DEBUGPATHS ...]
                         Potential paths where to look for debug info
+  --addsourcedirs ADDSOURCEDIRS [ADDSOURCEDIRS ...]
+                        Additional paths to scan for sources
 ```
 
 ## Output
