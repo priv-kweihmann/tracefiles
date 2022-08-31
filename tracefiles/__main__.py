@@ -25,6 +25,9 @@ class PathWithScanningDepth:
                 raise argparse.ArgumentError(
                     f'Depth information must be a digit')
 
+    def __repr__(self) -> str:
+        return self.path
+
 
 def create_argparser():
     parser = argparse.ArgumentParser(prog='tracefiles',
@@ -87,7 +90,6 @@ def find_and_translate(hash_map: Dict, sources: List[str]) -> Set[str]:
 
 def hash_sources(sourcedirs: List[PathWithScanningDepth]) -> Dict:
     res = {}
-    print(sourcedirs)
     for sdir in sourcedirs:
         for root, _, files in os.walk(sdir.path):
             for f in files:
@@ -105,7 +107,7 @@ def get_sources(sourcedirs: List[PathWithScanningDepth], binaries: List[str], de
     for binary in binaries:
         for inpath in get_debug_paths(binary, debugpaths):
             logging.info(f'Analyzing {inpath}')
-            if os.path.exists(inpath):
+            if os.path.exists(inpath) and os.path.isfile(inpath):
                 _src_files = []
                 _cmdline = f'readelf -wi {inpath} | grep -B1 DW_AT_comp_dir | awk \'/DW_AT_name/{{name = $NF; getline; print name}}\''
                 try:
