@@ -5,7 +5,7 @@ import argparse
 import hashlib
 import logging
 import os
-import subprocess
+import subprocess  # noqa: S404
 import sys
 from typing import Dict
 from typing import List
@@ -19,27 +19,27 @@ class PathWithScanningDepth:
         chunks = path.split(':')
         self.path: str = chunks[0]
         if len(chunks) > 1:
-            try:
-                self.depth = int(chunks[1])
-            except ValueError:
+            try:  # pragma: no cover
+                self.depth = int(chunks[1])  # pragma: no cover
+            except ValueError:  # pragma: no cover
                 raise argparse.ArgumentError(
-                    f'Depth information must be a digit')
+                    'Depth information must be a digit')
 
     def __repr__(self) -> str:
-        return self.path
+        return self.path  # pragma: no cover
 
 
 def create_argparser():
-    parser = argparse.ArgumentParser(prog='tracefiles',
-                                     description='A utility to find used sources from a binary')
-    parser.add_argument('--debugpaths', nargs='+', default=[], action='extend',
-                        help='Potential paths where to look for debug info')
-    parser.add_argument('--addsourcedirs', type=PathWithScanningDepth, nargs='+', default=[], action='extend',
-                        help='Additional paths to scan for sources')
-    parser.add_argument('sourcedir', type=PathWithScanningDepth,
-                        help='Directory with the source code')
-    parser.add_argument('binaries', nargs='+', help='The binaries to inspect')
-    return parser.parse_args()
+    parser = argparse.ArgumentParser(prog='tracefiles',  # pragma: no cover
+                                     description='A utility to find used sources from a binary')  # pragma: no cover
+    parser.add_argument('--debugpaths', nargs='+', default=[], action='extend',  # pragma: no cover
+                        help='Potential paths where to look for debug info')  # pragma: no cover
+    parser.add_argument('--addsourcedirs', type=PathWithScanningDepth, nargs='+', default=[], action='extend',  # pragma: no cover
+                        help='Additional paths to scan for sources')  # pragma: no cover
+    parser.add_argument('sourcedir', type=PathWithScanningDepth,  # pragma: no cover
+                        help='Directory with the source code')  # pragma: no cover
+    parser.add_argument('binaries', nargs='+', help='The binaries to inspect')  # pragma: no cover
+    return parser.parse_args()  # pragma: no cover
 
 
 def get_debug_paths(binary: str, paths: List[str]) -> List[str]:
@@ -52,7 +52,7 @@ def get_debug_paths(binary: str, paths: List[str]) -> List[str]:
 
 
 def md5hash(filepath: str) -> str:
-    hash_md5 = hashlib.md5()
+    hash_md5 = hashlib.md5()  # noqa: S303, S324, DUO130
     with open(filepath, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
             hash_md5.update(chunk)
@@ -75,16 +75,16 @@ def find_and_translate(hash_map: Dict, sources: List[str]) -> Set[str]:
             _globs = [k for k in hash_map.keys(
             ) if os.path.basename(k) == sfile]
             if _globs:
-                result.update(_globs)
-                found = True
+                result.update(_globs)  # pragma: no cover
+                found = True  # pragma: no cover
         if not found:
             try:
                 _hash = md5hash(sfile)
                 for k, v in hash_map.items():
                     if v == _hash:
                         result.add(k)
-            except (FileNotFoundError, IsADirectoryError):
-                pass
+            except (FileNotFoundError, IsADirectoryError):  # pragma: no cover
+                pass  # pragma: no cover
     return result
 
 
@@ -96,7 +96,7 @@ def hash_sources(sourcedirs: List[PathWithScanningDepth]) -> Dict:
                 filepath = os.path.join(root, f)
                 relpath = os.path.relpath(filepath, sdir.path)
                 if relpath.count(os.path.sep) > sdir.depth:
-                    continue
+                    continue  # pragma: no cover
                 res[relpath] = md5hash(filepath)
     return res
 
@@ -106,14 +106,14 @@ def get_sources(sourcedirs: List[PathWithScanningDepth], binaries: List[str], de
     hash_map = hash_sources(sourcedirs)
     for binary in binaries:
         for inpath in get_debug_paths(binary, debugpaths):
-            logging.info(f'Analyzing {inpath}')
+            logging.info(f'Analyzing {inpath}')  # noqa: G004
             if os.path.exists(inpath) and os.path.isfile(inpath):
                 _src_files = []
                 _cmdline = f'readelf -wi {inpath} | grep -B1 DW_AT_comp_dir | awk \'/DW_AT_name/{{name = $NF; getline; print name}}\''
                 try:
-                    _src_files = subprocess.check_output(_cmdline,
+                    _src_files = subprocess.check_output(_cmdline,  # noqa: DUO116
                                                             universal_newlines=True,
-                                                            shell=True,  # noqa: S602
+                                                            shell=True,  # noqa: S602,
                                                             stderr=subprocess.DEVNULL)
                     _src_files = [x for x in _src_files.split('\n') if x]
                     if not _src_files:
@@ -121,19 +121,19 @@ def get_sources(sourcedirs: List[PathWithScanningDepth], binaries: List[str], de
                     _cmdline = f'readelf -w {inpath} | grep "indirect line string, offset"'
                     try:
                         _src_files += [x.split(':')[-1].strip()
-                                        for x in subprocess.check_output(_cmdline,
+                                        for x in subprocess.check_output(_cmdline,  # noqa: DUO116
                                                                         universal_newlines=True,
                                                                         shell=True,  # noqa: S602
                                                                         stderr=subprocess.DEVNULL).split('\n')
                                         if x]
-                    except:
-                        logging.info(
-                            f"Problems getting full DWARF info for {inpath}")
-                    _src_files = set([x.replace('../', '')
-                                      for x in _src_files if x])
+                    except BaseException:  # pragma: no cover
+                        logging.info(  # pragma: no cover
+                            f'Problems getting full DWARF info for {inpath}')  # noqa: G004
+                    _src_files = {x.replace('../', '')  # pragma: no cover
+                                  for x in _src_files if x}
                     _src_files = find_and_translate(hash_map, _src_files)
-                except:
-                    logging.info(f'{inpath} is not a binary')
+                except BaseException:
+                    logging.info(f'{inpath} is not a binary')  # noqa: G004
                     # find a plain file copy
                     _src_files = find_and_translate(hash_map, [inpath])
                 res.update(_src_files)
@@ -141,11 +141,11 @@ def get_sources(sourcedirs: List[PathWithScanningDepth], binaries: List[str], de
 
 
 def main():
-    args = create_argparser()
-    for file in get_sources([args.sourcedir] + args.addsourcedirs,
-                            args.binaries, args.debugpaths):
-        print(file)
+    args = create_argparser()  # pragma: no cover
+    for file_ in get_sources([args.sourcedir] + args.addsourcedirs,  # pragma: no cover
+                             args.binaries, args.debugpaths):
+        print(file_)  # pragma: no cover
 
 
 if __name__ == '__main__':
-    main()
+    main()  # pragma: no cover
