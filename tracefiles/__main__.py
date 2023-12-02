@@ -109,7 +109,7 @@ def get_sources(sourcedirs: List[PathWithScanningDepth], binaries: List[str], de
             logging.info(f'Analyzing {inpath}')  # noqa: G004
             if os.path.exists(inpath) and os.path.isfile(inpath):
                 _src_files = []
-                _cmdline = f'readelf -wi {inpath} | grep -B1 DW_AT_comp_dir | awk \'/DW_AT_name/{{name = $NF; getline; print name}}\''
+                _cmdline = f'readelf -wi {inpath} | grep -B1 DW_AT_comp_dir | awk \'/DW_AT_name/{{name = $NF; getline; print name}}\''  # noqa: E702
                 try:
                     _src_files = subprocess.check_output(_cmdline,  # noqa: DUO116
                                                             universal_newlines=True,
