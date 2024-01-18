@@ -126,13 +126,13 @@ def get_sources(sourcedirs: List[PathWithScanningDepth], binaries: List[str], de
                                                                         shell=True,  # noqa: S602
                                                                         stderr=subprocess.DEVNULL).split('\n')
                                         if x]
-                    except BaseException:  # pragma: no cover
+                    except Exception:  # pragma: no cover
                         logging.info(  # pragma: no cover
                             f'Problems getting full DWARF info for {inpath}')  # noqa: G004
                     _src_files = {x.replace('../', '')  # pragma: no cover
                                   for x in _src_files if x}
                     _src_files = find_and_translate(hash_map, _src_files)
-                except BaseException:
+                except Exception:
                     logging.info(f'{inpath} is not a binary')  # noqa: G004
                     # find a plain file copy
                     _src_files = find_and_translate(hash_map, [inpath])
