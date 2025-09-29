@@ -38,7 +38,8 @@ def create_argparser():
                         help='Additional paths to scan for sources')  # pragma: no cover
     parser.add_argument('sourcedir', type=PathWithScanningDepth,  # pragma: no cover
                         help='Directory with the source code')  # pragma: no cover
-    parser.add_argument('binaries', nargs='+', help='The binaries to inspect')  # pragma: no cover
+    parser.add_argument('binaries', nargs='+',
+                        help='The binaries to inspect')  # pragma: no cover
     return parser.parse_args()  # pragma: no cover
 
 
@@ -109,23 +110,23 @@ def get_sources(sourcedirs: List[PathWithScanningDepth], binaries: List[str], de
             logging.info(f'Analyzing {inpath}')  # noqa: G004
             if os.path.exists(inpath) and os.path.isfile(inpath):
                 _src_files = []
-                _cmdline = f'readelf -wi {inpath} | grep -B1 DW_AT_comp_dir | awk \'/DW_AT_name/{{name = $NF; getline; print name}}\''  # noqa: E702
+                _cmdline = f"readelf -wi {inpath} | grep -B1 DW_AT_comp_dir | awk '/DW_AT_name/{{name = $NF; getline; print name}}'"  # noqa: E702
                 try:
                     _src_files = subprocess.check_output(_cmdline,  # noqa: DUO116
-                                                            universal_newlines=True,
-                                                            shell=True,  # noqa: S602,
-                                                            stderr=subprocess.DEVNULL)
+                                                         universal_newlines=True,
+                                                         shell=True,  # noqa: S602,
+                                                         stderr=subprocess.DEVNULL)
                     _src_files = [x for x in _src_files.split('\n') if x]
                     if not _src_files:
                         raise Exception()
                     _cmdline = f'readelf -w {inpath} | grep "indirect line string, offset"'
                     try:
                         _src_files += [x.split(':')[-1].strip()
-                                        for x in subprocess.check_output(_cmdline,  # noqa: DUO116
+                                       for x in subprocess.check_output(_cmdline,  # noqa: DUO116
                                                                         universal_newlines=True,
                                                                         shell=True,  # noqa: S602
                                                                         stderr=subprocess.DEVNULL).split('\n')
-                                        if x]
+                                       if x]
                     except Exception:  # pragma: no cover
                         logging.info(  # pragma: no cover
                             f'Problems getting full DWARF info for {inpath}')  # noqa: G004
