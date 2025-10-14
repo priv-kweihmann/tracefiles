@@ -3,7 +3,7 @@ requires = ["setuptools >= 77.0.3"]
 build-backend = "setuptools.build_meta"
 
 [tool.bumpversion]
-current_version = "1.5.0"
+current_version = "1.4.0"
 tag = false
 commit = false
 
@@ -47,8 +47,8 @@ statistics = false
 
 [project]
 name = "tracefiles"
-requires-python = ">= 3.9"
-version = "1.5.0"
+requires-python = ">= 3.10"
+version = "1.4.0"
 description = "A utility to find used sources from a binary"
 readme = "README.md"
 maintainers = [
@@ -68,7 +68,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.14",
 ]
 dynamic = ["optional-dependencies"]
 
